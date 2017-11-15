@@ -64,43 +64,13 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
         captureButton = (Button) findViewById(R.id.capturebutton);
-
-        new MommooPermission.Builder(this)
-                .setPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA)
-                .setOnPermissionDenied(new OnPermissionDenied() {
-                    @Override
-                    public void onDenied(List<DenyInfo> deniedPermissionList) {
-                        for (DenyInfo denyInfo : deniedPermissionList){
-                            System.out.println("isDenied : " + denyInfo.getPermission() +" , "+
-                                    "userNeverSeeChecked : " + denyInfo.isUserNeverAskAgainChecked());
-                        }
-                    }
-                })
-                .setPreNoticeDialogData("Pre-Notice","Please accept all permission to using this app")
-                .setOfferGrantPermissionData("Move To App Setup","1. Touch the 'SETUP'\n" +
-                        "2. Touch the 'Permission' tab\n"+
-                        "3. Grant all permissions by dragging toggle button")
-                .setOnPermissionGranted(new OnPermissionGranted() {
-                    @Override
-                    public void onGranted(List<String> permissionList) {
-                        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
-                                ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-                            setContentView(R.layout.main);
-                            setupCameraPreviewView();
-                        }
-
-                    }
-                })
-                .build()
-                .checkPermissions();
-
-
 
         captureButton.setOnClickListener(
                 new View.OnClickListener() {
@@ -111,6 +81,47 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
         );
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+            setupCameraPreviewView();
+
+        } else {
+
+            new MommooPermission.Builder(this)
+                    .setPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA)
+                    .setOnPermissionDenied(new OnPermissionDenied() {
+                        @Override
+                        public void onDenied(List<DenyInfo> deniedPermissionList) {
+                            for (DenyInfo denyInfo : deniedPermissionList){
+                                System.out.println("isDenied : " + denyInfo.getPermission() +" , "+
+                                        "userNeverSeeChecked : " + denyInfo.isUserNeverAskAgainChecked());
+                            }
+                        }
+                    })
+                    .setPreNoticeDialogData("Pre-Notice","Please accept all permission to using this app")
+                    .setOfferGrantPermissionData("Move To App Setup","1. Touch the 'SETUP'\n" +
+                            "2. Touch the 'Permission' tab\n"+
+                            "3. Grant all permissions by dragging toggle button")
+                    .setOnPermissionGranted(new OnPermissionGranted() {
+                        @Override
+                        public void onGranted(List<String> permissionList) {
+                            if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
+                                    ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                                setContentView(R.layout.main);
+                                setupCameraPreviewView();
+                            }
+
+                        }
+                    })
+                    .build()
+                    .checkPermissions();
+        }
     }
 
     private void setupCameraPreviewView() {
