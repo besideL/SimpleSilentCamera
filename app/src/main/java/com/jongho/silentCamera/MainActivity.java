@@ -23,15 +23,18 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jongho.silentCamera.CameraRenderer;
@@ -41,40 +44,63 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.List;
 
 import com.jongho.silentCamera.R;
+import com.mommoo.permission.MommooPermission;
+import com.mommoo.permission.listener.OnPermissionDenied;
+import com.mommoo.permission.listener.OnPermissionGranted;
+import com.mommoo.permission.repository.DenyInfo;
 
-/**
- * @author nekocode (nekocode.cn@gmail.com)
- */
+
 public class MainActivity extends AppCompatActivity {
+    public static final String TAG = "Myclass";
     private static final int REQUEST_CAMERA_PERMISSION = 101;
+    private static final int REQUEST_STORAGE_PERMISSION = 102;
     private CameraRenderer renderer;
     private TextureView textureView;
     private int filterId = R.id.filter0;
     private Button captureButton;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
-        Button captureButton = (Button) findViewById(R.id.capturebutton);
+        captureButton = (Button) findViewById(R.id.capturebutton);
+
+        new MommooPermission.Builder(this)
+                .setPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA)
+                .setOnPermissionDenied(new OnPermissionDenied() {
+                    @Override
+                    public void onDenied(List<DenyInfo> deniedPermissionList) {
+                        for (DenyInfo denyInfo : deniedPermissionList){
+                            System.out.println("isDenied : " + denyInfo.getPermission() +" , "+
+                                    "userNeverSeeChecked : " + denyInfo.isUserNeverAskAgainChecked());
+                        }
+                    }
+                })
+                .setPreNoticeDialogData("Pre-Notice","Please accept all permission to using this app")
+                .setOfferGrantPermissionData("Move To App Setup","1. Touch the 'SETUP'\n" +
+                        "2. Touch the 'Permission' tab\n"+
+                        "3. Grant all permissions by dragging toggle button")
+                .setOnPermissionGranted(new OnPermissionGranted() {
+                    @Override
+                    public void onGranted(List<String> permissionList) {
+                        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
+                                ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                            setContentView(R.layout.main);
+                            setupCameraPreviewView();
+                        }
+
+                    }
+                })
+                .build()
+                .checkPermissions();
 
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            // Should we show an explanation?
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
-                Toast.makeText(this, "Camera access is required.", Toast.LENGTH_SHORT).show();
-
-            } else {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA},
-                        REQUEST_CAMERA_PERMISSION);
-            }
-
-        } else {
-            setupCameraPreviewView();
-        }
 
         captureButton.setOnClickListener(
                 new View.OnClickListener() {
@@ -87,116 +113,13 @@ public class MainActivity extends AppCompatActivity {
         );
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case REQUEST_CAMERA_PERMISSION: {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    setupCameraPreviewView();
-                }
-            }
-        }
-    }
-
-    void setupCameraPreviewView() {
-        renderer = new CameraRenderer(this);
+    private void setupCameraPreviewView() {
         textureView = (TextureView) findViewById(R.id.textureView);
+        renderer = new CameraRenderer(this);
         assert textureView != null;
         textureView.setSurfaceTextureListener(renderer);
-
-        // Show original frame when touch the view
-        textureView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                switch (event.getAction()) {
-
-                    // 터치 시 오리지날 보여줌
-                    case MotionEvent.ACTION_DOWN:
-                        renderer.setSelectedFilter(R.id.filter0);
-                        break;
-
-                    // 터치를 떼면 다시 선택된 필터를 적용
-                    case MotionEvent.ACTION_CANCEL:
-                        renderer.setSelectedFilter(filterId);
-                        break;
-                }
-                return true;
-            }
-        });
-
-        textureView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
-
-            @Override
-            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
-                renderer.onSurfaceTextureSizeChanged(null, v.getWidth(), v.getHeight());
-            }
-        });
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.filter, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        filterId = item.getItemId();
-
-        // TODO: need tidy up
-        if (filterId == R.id.capture) {
-
-            return true;
-        }
-
-
-        if (renderer != null)
-            renderer.setSelectedFilter(filterId);
-
-        return true;
-    }
-
-    private boolean capture() {
-        FileOutputStream outputStream = null;
-
-        // create bitmap screen capture
-        Bitmap bitmap = textureView.getBitmap();
-
-        // byte[]로 변환
-        byte[] byteArray = convertBitmapToByteArrayUncompressed(bitmap);
-
-        try {
-            File sdCard = Environment.getExternalStorageDirectory();
-            File dir = new File(sdCard.getAbsolutePath() + "/JonghoCam");
-            dir.mkdirs();
-
-            String fileName = String.format("%d.jpg", System.currentTimeMillis());
-            File imageFile = new File(dir, fileName);
-
-            outputStream = new FileOutputStream(imageFile);
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
-            outputStream.flush();
-            outputStream.close();
-
-            refreshGallery(imageFile);
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            return false;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
-
-        return true;
-    }
-
-    public static byte[] convertBitmapToByteArrayUncompressed(Bitmap bitmap) {
-        ByteBuffer byteBuffer = ByteBuffer.allocate(bitmap.getByteCount());
-        bitmap.copyPixelsToBuffer(byteBuffer);
-        byteBuffer.rewind();
-        return byteBuffer.array();
-    }
 
     private void refreshGallery(File file) {
         Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
