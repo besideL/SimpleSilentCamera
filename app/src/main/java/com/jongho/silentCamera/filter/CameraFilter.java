@@ -95,7 +95,7 @@ public abstract class CameraFilter {
     }
 
     final public void draw(int cameraTexId, int canvasWidth, int canvasHeight) {
-        // TODO move?
+        
         // Create camera render buffer
         if (CAMERA_RENDER_BUF == null ||
                 CAMERA_RENDER_BUF.getWidth() != canvasWidth ||

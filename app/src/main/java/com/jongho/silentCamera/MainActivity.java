@@ -55,7 +55,7 @@ import com.mommoo.permission.repository.DenyInfo;
 
 
 public class MainActivity extends AppCompatActivity {
-    public static final String TAG = "Myclass";
+    public static final String TAG = "MainActivity";
     private static final int REQUEST_CAMERA_PERMISSION = 101;
     private static final int REQUEST_STORAGE_PERMISSION = 102;
     private CameraRenderer renderer;
@@ -68,8 +68,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.i(TAG, "onCreate");
         setContentView(R.layout.main);
 
+        textureView = (TextureView) findViewById(R.id.textureView);
         captureButton = (Button) findViewById(R.id.capturebutton);
 
         captureButton.setOnClickListener(
@@ -81,11 +83,6 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
         );
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
                 ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
@@ -98,22 +95,22 @@ public class MainActivity extends AppCompatActivity {
                     .setOnPermissionDenied(new OnPermissionDenied() {
                         @Override
                         public void onDenied(List<DenyInfo> deniedPermissionList) {
-                            for (DenyInfo denyInfo : deniedPermissionList){
-                                System.out.println("isDenied : " + denyInfo.getPermission() +" , "+
+                            for (DenyInfo denyInfo : deniedPermissionList) {
+                                System.out.println("isDenied : " + denyInfo.getPermission() + " , " +
                                         "userNeverSeeChecked : " + denyInfo.isUserNeverAskAgainChecked());
                             }
                         }
                     })
-                    .setPreNoticeDialogData("Pre-Notice","Please accept all permission to using this app")
-                    .setOfferGrantPermissionData("Move To App Setup","1. Touch the 'SETUP'\n" +
-                            "2. Touch the 'Permission' tab\n"+
+                    .setPreNoticeDialogData("Pre-Notice", "Please accept all permission to using this app")
+                    .setOfferGrantPermissionData("Move To App Setup", "1. Touch the 'SETUP'\n" +
+                            "2. Touch the 'Permission' tab\n" +
                             "3. Grant all permissions by dragging toggle button")
                     .setOnPermissionGranted(new OnPermissionGranted() {
                         @Override
                         public void onGranted(List<String> permissionList) {
+                            Log.i(TAG, "onGranted");
                             if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
                                     ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-                                setContentView(R.layout.main);
                                 setupCameraPreviewView();
                             }
 
@@ -121,11 +118,13 @@ public class MainActivity extends AppCompatActivity {
                     })
                     .build()
                     .checkPermissions();
+
         }
     }
 
     private void setupCameraPreviewView() {
-        textureView = (TextureView) findViewById(R.id.textureView);
+        Log.i(TAG, "setupCameraPreviewView");
+
         renderer = new CameraRenderer(this);
         assert textureView != null;
         textureView.setSurfaceTextureListener(renderer);
@@ -137,6 +136,12 @@ public class MainActivity extends AppCompatActivity {
                     case MotionEvent.ACTION_DOWN:
                         //renderer.setSelectedFilter(R.id.filter0);
                         //camera.autoFocus(myAutoFocusCallback);
+                        textureView = (TextureView) findViewById(R.id.textureView);
+                        renderer = new CameraRenderer(MainActivity.this);
+                        assert textureView != null;
+                        textureView.setSurfaceTextureListener(renderer);
+
+                        Log.i(TAG, " onTouch");
 
                         break;
 
@@ -152,6 +157,7 @@ public class MainActivity extends AppCompatActivity {
         textureView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
             @Override
             public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                Log.i(TAG, "onLayoutChange");
                 renderer.onSurfaceTextureSizeChanged(null, v.getWidth(), v.getHeight());
             }
         });
@@ -159,6 +165,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void refreshGallery(File file) {
+        Log.i(TAG, "refreshGallery");
         Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
         mediaScanIntent.setData(Uri.fromFile(file));
         sendBroadcast(mediaScanIntent);
@@ -167,6 +174,7 @@ public class MainActivity extends AppCompatActivity {
     private class SaveImageTask extends AsyncTask<Bitmap, Boolean, Boolean> {
         @Override
         protected Boolean doInBackground(Bitmap... bitmaps) {
+            Log.i(TAG, "SaveImageTask.doInBackground");
             FileOutputStream outputStream = null;
 
             try {
@@ -196,6 +204,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Boolean aBoolean) {
+            Log.i(TAG, "SaveImageTask.onPostExecute");
             if ( aBoolean == false ) {
                 Toast.makeText(MainActivity.this , "save failed!", Toast.LENGTH_SHORT ).show();
             } else {

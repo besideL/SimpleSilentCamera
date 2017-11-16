@@ -95,11 +95,14 @@ public class CameraRenderer implements Runnable, TextureView.SurfaceTextureListe
 
     @Override
     public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-
+        //Log.i(TAG, "onSurfaceTextureUpdated"); -- callback everytime.
+        // TODO (1) Add autofocus.
+        // TODO (2) Fix "BufferQueueProducer: [SurfaceTexture-0-5022-0] dequeueBuffer: BufferQueue has been abandoned"
     }
 
     @Override
     public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
+        Log.i(TAG, "onSurfaceTextureSizeChanged");
         gwidth = -width;
         gheight = -height;
 //        if (previewing){
@@ -113,7 +116,6 @@ public class CameraRenderer implements Runnable, TextureView.SurfaceTextureListe
 //                camera.startPreview();
 //                previewing = true;
 //            } catch (IOException e) {
-//                // TODO Auto-generated catch block
 //                e.printStackTrace();
 //            }
 //        }
@@ -123,6 +125,7 @@ public class CameraRenderer implements Runnable, TextureView.SurfaceTextureListe
 
     @Override
     public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+        Log.i(TAG, "onSurfaceTextureDestroyed");
         if (camera != null) {
             camera.stopPreview();
             camera.release();
@@ -138,6 +141,7 @@ public class CameraRenderer implements Runnable, TextureView.SurfaceTextureListe
 
     @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+        Log.i(TAG, "onSurfaceTextureAvailable");
         if (renderThread != null && renderThread.isAlive()) {
             renderThread.interrupt();
         }
@@ -157,6 +161,7 @@ public class CameraRenderer implements Runnable, TextureView.SurfaceTextureListe
     }
 
     public void setSelectedFilter(int id) {
+        Log.i(TAG, "setSelectedFilter");
         selectedFilterId = id;
         selectedFilter = cameraFilterMap.get(id);
         if (selectedFilter != null)
@@ -165,6 +170,7 @@ public class CameraRenderer implements Runnable, TextureView.SurfaceTextureListe
 
     @Override
     public void run() {
+        Log.i(TAG, "run");
         initGL(surfaceTexture);
 
         // Setup camera filters map
@@ -236,6 +242,7 @@ public class CameraRenderer implements Runnable, TextureView.SurfaceTextureListe
     }
 
     private void initGL(SurfaceTexture texture) {
+        Log.i(TAG, "initGL");
         egl10 = (EGL10) EGLContext.getEGL();
 
         eglDisplay = egl10.eglGetDisplay(EGL10.EGL_DEFAULT_DISPLAY);
@@ -296,6 +303,7 @@ public class CameraRenderer implements Runnable, TextureView.SurfaceTextureListe
     }
 
     private Pair<Camera.CameraInfo, Integer> getBackCamera() {
+        Log.i(TAG, "getBackCamera");
         Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
         final int numberOfCameras = Camera.getNumberOfCameras();
 

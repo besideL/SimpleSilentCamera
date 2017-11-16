@@ -47,7 +47,7 @@ public class JFAVoronoiFilter extends CameraFilter {
 
     @Override
     public void onDraw(int cameraTexId, int canvasWidth, int canvasHeight) {
-        // TODO move?
+
         if (bufA == null || bufA.getWidth() != canvasWidth || bufB.getHeight() != canvasHeight) {
             // Create new textures for buffering
             bufA = new RenderBuffer(canvasWidth, canvasHeight, GLES20.GL_TEXTURE4);
