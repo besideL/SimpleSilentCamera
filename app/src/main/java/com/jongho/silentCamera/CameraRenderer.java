@@ -16,6 +16,7 @@
 package com.jongho.silentCamera;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.opengl.GLES11Ext;
@@ -23,9 +24,12 @@ import android.opengl.GLES20;
 import android.util.Log;
 import android.util.Pair;
 import android.util.SparseArray;
+import android.view.SurfaceView;
 import android.view.TextureView;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
@@ -83,6 +87,7 @@ public class CameraRenderer implements Runnable, TextureView.SurfaceTextureListe
     private CameraFilter selectedFilter;
     private int selectedFilterId = R.id.filter0;
     private SparseArray<CameraFilter> cameraFilterMap = new SparseArray<>();
+    private boolean previewing = false;
 
     public CameraRenderer(Context context) {
         this.context = context;
@@ -90,19 +95,38 @@ public class CameraRenderer implements Runnable, TextureView.SurfaceTextureListe
 
     @Override
     public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+
     }
 
     @Override
     public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
         gwidth = -width;
         gheight = -height;
+//        if (previewing){
+//            camera.stopPreview();
+//            previewing = false;
+//        }
+//
+//        if (camera != null){
+//            try {
+//                camera.setPreviewTexture(cameraSurfaceTexture);
+//                camera.startPreview();
+//                previewing = true;
+//            } catch (IOException e) {
+//                // TODO Auto-generated catch block
+//                e.printStackTrace();
+//            }
+//        }
     }
+
+
 
     @Override
     public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
         if (camera != null) {
             camera.stopPreview();
             camera.release();
+            previewing = false;
         }
         if (renderThread != null && renderThread.isAlive()) {
             renderThread.interrupt();
@@ -174,6 +198,7 @@ public class CameraRenderer implements Runnable, TextureView.SurfaceTextureListe
         // Start camera preview
         try {
             camera.setPreviewTexture(cameraSurfaceTexture);
+            camera.getParameters().setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
             camera.startPreview();
         } catch (IOException ioe) {
             // Something bad happened
@@ -281,5 +306,9 @@ public class CameraRenderer implements Runnable, TextureView.SurfaceTextureListe
             }
         }
         return null;
+    }
+
+    public Camera getCamera() {
+        return camera;
     }
 }

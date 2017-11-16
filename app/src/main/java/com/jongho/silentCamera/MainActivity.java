@@ -19,6 +19,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.hardware.Camera;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -59,10 +60,9 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_STORAGE_PERMISSION = 102;
     private CameraRenderer renderer;
     private TextureView textureView;
+    private Camera camera;
     private int filterId = R.id.filter0;
     private Button captureButton;
-
-
 
 
     @Override
@@ -129,6 +129,32 @@ public class MainActivity extends AppCompatActivity {
         renderer = new CameraRenderer(this);
         assert textureView != null;
         textureView.setSurfaceTextureListener(renderer);
+
+        textureView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        //renderer.setSelectedFilter(R.id.filter0);
+                        //camera.autoFocus(myAutoFocusCallback);
+
+                        break;
+
+                    case MotionEvent.ACTION_UP:
+                    case MotionEvent.ACTION_CANCEL:
+                        renderer.setSelectedFilter(filterId);
+                        break;
+                }
+                return true;
+            }
+        });
+
+        textureView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                renderer.onSurfaceTextureSizeChanged(null, v.getWidth(), v.getHeight());
+            }
+        });
     }
 
 
