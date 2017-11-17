@@ -53,7 +53,6 @@ public class CameraRenderer implements TextureView.SurfaceTextureListener {
             currentCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
             camera = Camera.open(currentCameraId);
 
-
             surfaceTexture = surface;
 
             try {
@@ -111,7 +110,7 @@ public class CameraRenderer implements TextureView.SurfaceTextureListener {
         camera.release();
 
         //swap the id of the camera to be used
-        if(currentCameraId == Camera.CameraInfo.CAMERA_FACING_BACK){
+        if (currentCameraId == Camera.CameraInfo.CAMERA_FACING_BACK) {
             currentCameraId = Camera.CameraInfo.CAMERA_FACING_FRONT;
             camera = Camera.open(currentCameraId);
             camera.setDisplayOrientation(90);
@@ -119,6 +118,7 @@ public class CameraRenderer implements TextureView.SurfaceTextureListener {
         } else {
             currentCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
             camera = Camera.open(currentCameraId);
+            camera.setDisplayOrientation(90);
         }
 
         try {

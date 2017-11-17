@@ -77,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
         captureButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.i(TAG, "onClick: captureButton");
                 Bitmap bitmap = textureView.getBitmap();
                 new SaveImageTask().execute(bitmap);
             }
@@ -85,7 +86,18 @@ public class MainActivity extends AppCompatActivity {
         toggleButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.i(TAG, "onClick: toggleButton");
                 renderer.cameraChange();
+            }
+        });
+
+        folderButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i(TAG, "onClick: folderButton");
+//                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(
+//                        "content://media/internal/images/media/"));
+//                startActivity(intent);
             }
         });
 
@@ -139,13 +151,6 @@ public class MainActivity extends AppCompatActivity {
             public boolean onTouch(View v, MotionEvent event) {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
-                        //renderer.setSelectedFilter(R.id.filter0);
-                        //camera.autoFocus(myAutoFocusCallback);
-                        textureView = (TextureView) findViewById(R.id.textureView);
-                        renderer = new CameraRenderer(MainActivity.this);
-                        assert textureView != null;
-                        textureView.setSurfaceTextureListener(renderer);
-
                         Log.i(TAG, " onTouch");
 
                         break;
