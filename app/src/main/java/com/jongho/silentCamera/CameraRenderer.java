@@ -22,6 +22,8 @@ import android.util.Log;
 import android.util.Pair;
 import android.view.TextureView;
 
+import java.io.IOException;
+
 
 public class CameraRenderer implements TextureView.SurfaceTextureListener {
     private static final String TAG = "CameraRenderer";
@@ -30,6 +32,8 @@ public class CameraRenderer implements TextureView.SurfaceTextureListener {
     private Context context;
     private SurfaceTexture surfaceTexture;
     private Camera camera;
+    private boolean previewing = false;
+    private int currentCameraId;
 
 
     public CameraRenderer(Context context) {
@@ -40,25 +44,28 @@ public class CameraRenderer implements TextureView.SurfaceTextureListener {
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
         Log.i(TAG, "onSurfaceTextureAvailable");
 
-        // Open camera
-        Pair<Camera.CameraInfo, Integer> backCamera = getBackCamera();
-        final int backCameraId = backCamera.second;
+        if (previewing == true) {
+            camera.stopPreview();
+            camera.release();
+            camera = null;
+        } else {
 
-        camera = Camera.open(backCameraId);
+            currentCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
+            camera = Camera.open(currentCameraId);
 
-        surfaceTexture = surface;
 
+            surfaceTexture = surface;
 
-        try {
-            camera.setPreviewTexture(surfaceTexture);
-            camera.setDisplayOrientation(90);
-            camera.startPreview();
+            try {
+                camera.setPreviewTexture(surfaceTexture);
+                camera.setDisplayOrientation(90);
+                camera.startPreview();
+                previewing = true;
 
-        } catch (Exception e) {
-            Log.i(TAG, "onSurfaceTextureAvailable.error");
+            } catch (Exception e) {
+                Log.i(TAG, "onSurfaceTextureAvailable.error");
+            }
         }
-
-
     }
 
     @Override
@@ -89,27 +96,37 @@ public class CameraRenderer implements TextureView.SurfaceTextureListener {
         return true;
     }
 
-
-
-    private Pair<Camera.CameraInfo, Integer> getBackCamera() {
-        Log.i(TAG, "getBackCamera");
-
-        Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
-        final int numberOfCameras = Camera.getNumberOfCameras();
-
-        for (int i = 0; i < numberOfCameras; ++i) {
-            Camera.getCameraInfo(i, cameraInfo);
-            if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_BACK) {
-                return new Pair<>(cameraInfo, i);
-            }
-        }
-        return null;
-    }
-
     Camera.AutoFocusCallback myAutofocus = new Camera.AutoFocusCallback() {
         @Override
         public void onAutoFocus(boolean success, Camera camera) {
             Log.i(TAG, "onAutoFocus");
         }
     };
+
+    public void cameraChange() {
+        if (previewing) {
+            camera.stopPreview();
+        }
+        //NB: if you don't release the current camera before switching, you app will crash
+        camera.release();
+
+        //swap the id of the camera to be used
+        if(currentCameraId == Camera.CameraInfo.CAMERA_FACING_BACK){
+            currentCameraId = Camera.CameraInfo.CAMERA_FACING_FRONT;
+            camera = Camera.open(currentCameraId);
+            camera.setDisplayOrientation(90);
+
+        } else {
+            currentCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
+            camera = Camera.open(currentCameraId);
+        }
+
+        try {
+            camera.setPreviewTexture(surfaceTexture);
+            camera.startPreview();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
 }

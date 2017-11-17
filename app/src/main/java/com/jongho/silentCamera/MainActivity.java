@@ -74,15 +74,20 @@ public class MainActivity extends AppCompatActivity {
         toggleButton = (Button) findViewById(R.id.togglebutton);
         folderButton = (Button) findViewById(R.id.folderbutton);
 
-        captureButton.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Bitmap bitmap = textureView.getBitmap();
-                        new SaveImageTask().execute(bitmap);
-                    }
-                }
-        );
+        captureButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Bitmap bitmap = textureView.getBitmap();
+                new SaveImageTask().execute(bitmap);
+            }
+        });
+
+        toggleButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                renderer.cameraChange();
+            }
+        });
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
                 ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
