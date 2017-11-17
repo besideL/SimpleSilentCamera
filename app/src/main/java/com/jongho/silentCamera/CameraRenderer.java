@@ -29,7 +29,6 @@ public class CameraRenderer implements TextureView.SurfaceTextureListener {
 
     private Context context;
     private SurfaceTexture surfaceTexture;
-    private int gwidth, gheight;
     private Camera camera;
 
 
@@ -40,10 +39,7 @@ public class CameraRenderer implements TextureView.SurfaceTextureListener {
     @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
         Log.i(TAG, "onSurfaceTextureAvailable");
-
-        // TODO:: (1) Fix Camera rotate
-        // TODO:: (2) Add autofocus
-
+        
         // Open camera
         Pair<Camera.CameraInfo, Integer> backCamera = getBackCamera();
         final int backCameraId = backCamera.second;
@@ -54,7 +50,9 @@ public class CameraRenderer implements TextureView.SurfaceTextureListener {
 
         try {
             camera.setPreviewTexture(surfaceTexture);
+            camera.setDisplayOrientation(90);
             camera.startPreview();
+
         } catch (Exception e) {
             Log.i(TAG, "onSurfaceTextureAvailable.error");
         }
@@ -65,7 +63,7 @@ public class CameraRenderer implements TextureView.SurfaceTextureListener {
     @Override
     public void onSurfaceTextureUpdated(SurfaceTexture surface) {
         //Log.i(TAG, "onSurfaceTextureUpdated"); -- callback everytime.
-
+        camera.autoFocus(myAutofocus);
 
     }
 
@@ -105,4 +103,11 @@ public class CameraRenderer implements TextureView.SurfaceTextureListener {
         }
         return null;
     }
+
+    Camera.AutoFocusCallback myAutofocus = new Camera.AutoFocusCallback() {
+        @Override
+        public void onAutoFocus(boolean success, Camera camera) {
+            Log.i(TAG, "onAutoFocus");
+        }
+    };
 }
