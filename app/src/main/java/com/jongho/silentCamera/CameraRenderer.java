@@ -39,10 +39,11 @@ public class CameraRenderer implements TextureView.SurfaceTextureListener {
     @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
         Log.i(TAG, "onSurfaceTextureAvailable");
-        
+
         // Open camera
         Pair<Camera.CameraInfo, Integer> backCamera = getBackCamera();
         final int backCameraId = backCamera.second;
+
         camera = Camera.open(backCameraId);
 
         surfaceTexture = surface;
@@ -92,6 +93,7 @@ public class CameraRenderer implements TextureView.SurfaceTextureListener {
 
     private Pair<Camera.CameraInfo, Integer> getBackCamera() {
         Log.i(TAG, "getBackCamera");
+
         Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
         final int numberOfCameras = Camera.getNumberOfCameras();
 

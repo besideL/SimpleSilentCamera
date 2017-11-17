@@ -56,13 +56,11 @@ import com.mommoo.permission.repository.DenyInfo;
 
 public class MainActivity extends AppCompatActivity {
     public static final String TAG = "MainActivity";
-    private static final int REQUEST_CAMERA_PERMISSION = 101;
-    private static final int REQUEST_STORAGE_PERMISSION = 102;
     private CameraRenderer renderer;
     private TextureView textureView;
-    private Camera camera;
-    private int filterId = R.id.filter0;
     private Button captureButton;
+    private Button toggleButton;
+    private Button folderButton;
 
 
     @Override
@@ -73,6 +71,8 @@ public class MainActivity extends AppCompatActivity {
 
         textureView = (TextureView) findViewById(R.id.textureView);
         captureButton = (Button) findViewById(R.id.capturebutton);
+        toggleButton = (Button) findViewById(R.id.togglebutton);
+        folderButton = (Button) findViewById(R.id.folderbutton);
 
         captureButton.setOnClickListener(
                 new View.OnClickListener() {
