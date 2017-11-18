@@ -18,8 +18,10 @@ package com.jongho.silentCamera;
 import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
+import android.util.FloatMath;
 import android.util.Log;
 import android.util.Pair;
+import android.view.MotionEvent;
 import android.view.TextureView;
 
 import java.io.IOException;
@@ -128,5 +130,37 @@ public class CameraRenderer implements TextureView.SurfaceTextureListener {
             e.printStackTrace();
         }
 
+    }
+
+    public float getFingerSpacing(MotionEvent event) {
+        Log.i(TAG, "getFingerSpacing");
+        float x = event.getX(0) - event.getX(1);
+        float y = event.getY(0) - event.getY(1);
+        return (float) Math.sqrt(x*x + y*y);
+    }
+
+    public float handleZoom(MotionEvent event, float origDist) {
+        Camera.Parameters params = camera.getParameters();
+        int maxZoom = params.getMaxZoom();
+        int zoom = params.getZoom();
+        float newDist = getFingerSpacing(event);
+        if (newDist > origDist) {
+            //zoom in
+            if (zoom < maxZoom)
+                zoom++;
+        } else if (newDist < origDist) {
+            //zoom out
+            if (zoom > 0)
+                zoom--;
+        }
+
+        params.setZoom(zoom);
+        origDist = newDist;
+        camera.setParameters(params);
+        return origDist;
+    }
+
+    public void cancelAutoFocusCamera() {
+        camera.cancelAutoFocus();
     }
 }

@@ -61,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
     private Button captureButton;
     private Button toggleButton;
     private Button folderButton;
+    private float mDist;
 
 
     @Override
@@ -68,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         Log.i(TAG, "onCreate");
         setContentView(R.layout.main);
+
 
         textureView = (TextureView) findViewById(R.id.textureView);
         captureButton = (Button) findViewById(R.id.capturebutton);
@@ -95,9 +97,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Log.i(TAG, "onClick: folderButton");
-//                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(
-//                        "content://media/internal/images/media/"));
-//                startActivity(intent);
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(
+                        "content://media/internal/images/media/"));
+                startActivity(intent);
             }
         });
 
@@ -149,16 +151,23 @@ public class MainActivity extends AppCompatActivity {
         textureView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        Log.i(TAG, " onTouch");
+                int action = event.getAction();
 
-                        break;
-
-                    case MotionEvent.ACTION_UP:
-                    case MotionEvent.ACTION_CANCEL:
-
-                        break;
+                if (event.getPointerCount() > 1) {
+                    // handle multi-touch events
+                    if (action == MotionEvent.ACTION_POINTER_DOWN) {
+                        Log.i(TAG, "onTouch: ACTION_POINTER_DOWN");
+                        mDist = renderer.getFingerSpacing(event);
+                    } else if (action == MotionEvent.ACTION_MOVE) {
+                        Log.i(TAG, "onTouch: ACTION_MOVE");
+                        renderer.cancelAutoFocusCamera();
+                        mDist = renderer.handleZoom(event, mDist);
+                    }
+                } else {
+                    // handle single touch events
+                    if (action == MotionEvent.ACTION_UP) {
+                        Log.i(TAG, "onTouch: ACTION_UP");
+                    }
                 }
                 return true;
             }
@@ -218,7 +227,7 @@ public class MainActivity extends AppCompatActivity {
             if ( aBoolean == false ) {
                 Toast.makeText(MainActivity.this , "save failed!", Toast.LENGTH_SHORT ).show();
             } else {
-                Toast.makeText(MainActivity.this , "save succes!", Toast.LENGTH_SHORT ).show();
+                Toast.makeText(MainActivity.this , "save success!", Toast.LENGTH_SHORT ).show();
             }
         }
     }
