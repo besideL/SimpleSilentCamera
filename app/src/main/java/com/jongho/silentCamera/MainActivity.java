@@ -24,6 +24,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -35,6 +36,7 @@ import android.view.MotionEvent;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -61,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
     private Button captureButton;
     private Button toggleButton;
     private Button folderButton;
+    private SeekBar zoomSeekBar;
     private float mDist;
 
 
@@ -72,9 +75,10 @@ public class MainActivity extends AppCompatActivity {
 
 
         textureView = (TextureView) findViewById(R.id.textureView);
-        captureButton = (Button) findViewById(R.id.capturebutton);
-        toggleButton = (Button) findViewById(R.id.togglebutton);
-        folderButton = (Button) findViewById(R.id.folderbutton);
+        captureButton = (Button) findViewById(R.id.capture_button);
+        toggleButton = (Button) findViewById(R.id.toggle_button);
+        folderButton = (Button) findViewById(R.id.folder_button);
+        zoomSeekBar = (SeekBar) findViewById(R.id.zoom_seekBar);
 
         captureButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -100,6 +104,25 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(
                         "content://media/internal/images/media/"));
                 startActivity(intent);
+            }
+        });
+
+        zoomSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                Log.i(TAG, "onProgressChanged" + progress);
+                seekBar.setVisibility(View.VISIBLE);
+                renderer.seekBarZoom(progress);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
             }
         });
 
@@ -161,14 +184,28 @@ public class MainActivity extends AppCompatActivity {
                     } else if (action == MotionEvent.ACTION_MOVE) {
                         Log.i(TAG, "onTouch: ACTION_MOVE");
                         renderer.cancelAutoFocusCamera();
-                        mDist = renderer.handleZoom(event, mDist);
+                        mDist = renderer.touchZoom(event, mDist);
+                        zoomSeekBar.setProgress(renderer.getZoom());
+
+                        zoomSeekBar.setVisibility(View.VISIBLE);
+
                     }
                 } else {
                     // handle single touch events
                     if (action == MotionEvent.ACTION_UP) {
                         Log.i(TAG, "onTouch: ACTION_UP");
+
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                zoomSeekBar.setVisibility(View.INVISIBLE);
+                            }
+                        }, 2000);
+
+
                     }
                 }
+
                 return true;
             }
         });

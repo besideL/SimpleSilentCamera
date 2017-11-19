@@ -36,6 +36,7 @@ public class CameraRenderer implements TextureView.SurfaceTextureListener {
     private Camera camera;
     private boolean previewing = false;
     private int currentCameraId;
+    private Camera.Parameters zoomParams;
 
 
     public CameraRenderer(Context context) {
@@ -100,7 +101,7 @@ public class CameraRenderer implements TextureView.SurfaceTextureListener {
     Camera.AutoFocusCallback myAutofocus = new Camera.AutoFocusCallback() {
         @Override
         public void onAutoFocus(boolean success, Camera camera) {
-            Log.i(TAG, "onAutoFocus");
+//            Log.i(TAG, "onAutoFocus");
         }
     };
 
@@ -139,10 +140,10 @@ public class CameraRenderer implements TextureView.SurfaceTextureListener {
         return (float) Math.sqrt(x*x + y*y);
     }
 
-    public float handleZoom(MotionEvent event, float origDist) {
-        Camera.Parameters params = camera.getParameters();
-        int maxZoom = params.getMaxZoom();
-        int zoom = params.getZoom();
+    public float touchZoom(MotionEvent event, float origDist) {
+        zoomParams = camera.getParameters();
+        int maxZoom = zoomParams.getMaxZoom();
+        int zoom = zoomParams.getZoom();
         float newDist = getFingerSpacing(event);
         if (newDist > origDist) {
             //zoom in
@@ -154,13 +155,24 @@ public class CameraRenderer implements TextureView.SurfaceTextureListener {
                 zoom--;
         }
 
-        params.setZoom(zoom);
+
+        zoomParams.setZoom(zoom);
         origDist = newDist;
-        camera.setParameters(params);
+        camera.setParameters(zoomParams);
         return origDist;
     }
 
     public void cancelAutoFocusCamera() {
         camera.cancelAutoFocus();
+    }
+
+    public void seekBarZoom(int progress) {
+        zoomParams = camera.getParameters();
+        zoomParams.setZoom(progress);
+        camera.setParameters(zoomParams);
+    }
+
+    public int getZoom() {
+        return zoomParams.getZoom();
     }
 }
